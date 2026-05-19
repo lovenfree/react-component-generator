@@ -47,6 +47,9 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
             }
           }}
         />
+        <div style={{ textAlign: 'right', fontSize: '12px', color: prompt.length > 500 ? '#e74c3c' : '#888', marginTop: '4px' }}>
+          {prompt.length}자
+        </div>
         <button
           type="submit"
           className="btn-generate"

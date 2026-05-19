@@ -1,3 +1,5 @@
+import { login, register, verifyToken } from './user-service';
+
 const SYSTEM_PROMPT = `You are a React component generator. Generate a single React component based on the user's description.
 
 Rules:
@@ -45,7 +47,7 @@ render(<GradientButton />);`;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 type Provider = 'anthropic' | 'google';
@@ -162,6 +164,96 @@ const server = Bun.serve({
         },
         { headers: CORS_HEADERS }
       );
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/login') {
+      try {
+        const { username, password } = (await req.json()) as {
+          username: string;
+          password: string;
+        };
+
+        if (!username?.trim() || !password) {
+          return Response.json(
+            { error: 'Username and password are required' },
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const result = login(username, password);
+        if (!result) {
+          return Response.json(
+            { error: 'Invalid username or password' },
+            { status: 401, headers: CORS_HEADERS }
+          );
+        }
+
+        return Response.json({ token: result.token }, { headers: CORS_HEADERS });
+      } catch (err) {
+        return Response.json(
+          { error: 'Login failed' },
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/register') {
+      try {
+        const { username, password } = (await req.json()) as {
+          username: string;
+          password: string;
+        };
+
+        if (!username?.trim() || !password || password.length < 8) {
+          return Response.json(
+            { error: 'Username and password (min 8 chars) are required' },
+            { status: 400, headers: CORS_HEADERS }
+          );
+        }
+
+        const result = register(username, password);
+        if (!result) {
+          return Response.json(
+            { error: 'Username already exists' },
+            { status: 409, headers: CORS_HEADERS }
+          );
+        }
+
+        return Response.json({ token: result.token }, { headers: CORS_HEADERS });
+      } catch (err) {
+        return Response.json(
+          { error: 'Registration failed' },
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/me') {
+      try {
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader?.startsWith('Bearer ')) {
+          return Response.json(
+            { error: 'Missing or invalid Authorization header' },
+            { status: 401, headers: CORS_HEADERS }
+          );
+        }
+
+        const token = authHeader.substring(7);
+        const user = verifyToken(token);
+        if (!user) {
+          return Response.json(
+            { error: 'Invalid or expired token' },
+            { status: 401, headers: CORS_HEADERS }
+          );
+        }
+
+        return Response.json(user, { headers: CORS_HEADERS });
+      } catch (err) {
+        return Response.json(
+          { error: 'Failed to verify token' },
+          { status: 500, headers: CORS_HEADERS }
+        );
+      }
     }
 
     if (req.method === 'POST' && url.pathname === '/api/generate') {

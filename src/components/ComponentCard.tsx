@@ -3,6 +3,8 @@ import type { GeneratedComponent } from '../types';
 import { LivePreview } from './LivePreview';
 import { CodeView } from './CodeView';
 
+// TDD Hook Test
+
 interface ComponentCardProps {
   component: GeneratedComponent;
   onRemove: (id: string) => void;

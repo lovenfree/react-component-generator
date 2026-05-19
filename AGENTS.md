@@ -68,6 +68,30 @@ Scopes: `frontend`, `backend`, `api`, `prompt`, `ui`, `config`.
 
 규칙과 코드 간 괴리 발생 시, 업데이트 제안을 하세요. AGENTS.md는 살아있는 문서입니다.
 
+## Generator-Evaluator 패턴
+
+코드를 생성하거나 수정한 후, 다음 조건 중 하나라도 해당하면 Evaluator 서브에이전트를 호출한다.
+
+**호출 조건 (AND 아닌 OR)**:
+- 보안에 민감한 코드 수정 (API 키 처리, 입력값 처리, CORS 등)
+- 비즈니스 로직이 포함된 함수 신규 작성 또는 수정
+- AI 프로바이더 API 연동 코드 변경
+- 비동기 처리 로직 추가 또는 변경
+
+**호출 방법** — Agent 도구로 Evaluator를 서브에이전트로 실행한다:
+
+```
+Agent({
+  subagent_type: "evaluator",
+  description: "Evaluator 코드 리뷰",
+  prompt: "다음 파일을 검증하라:\n- src/hooks/useComponentGenerator.ts\n- server/index.ts"
+})
+```
+
+에이전트 정의: `.claude/agents/evaluator.md`
+
+**주의**: Evaluator는 리포트만 출력한다. 수정은 메인 에이전트가 사용자 확인 후 직접 수행한다.
+
 ## Context Map (Action-Based Routing)
 
 - **[Frontend 컴포넌트 수정](./src/AGENTS.md)** — React 컴포넌트, hooks, 타입스크립트 작업.
