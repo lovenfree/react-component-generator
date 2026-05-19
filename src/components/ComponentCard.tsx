@@ -11,9 +11,17 @@ interface ComponentCardProps {
 }
 
 type Tab = 'preview' | 'code';
+export type DeviceSize = 'mobile' | 'tablet' | 'desktop';
+
+const DEVICE_TABS: { id: DeviceSize; label: string; icon: string; width: string }[] = [
+  { id: 'mobile', label: '모바일', icon: '📱', width: '375px' },
+  { id: 'tablet', label: '태블릿', icon: '📟', width: '768px' },
+  { id: 'desktop', label: 'PC', icon: '🖥', width: '100%' },
+];
 
 export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: ComponentCardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('preview');
+  const [deviceSize, setDeviceSize] = useState<DeviceSize>('desktop');
   const [previewKey, setPreviewKey] = useState(0);
   const createdAt = component.createdAt.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -65,9 +73,25 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
           코드
         </button>
       </div>
+      {activeTab === 'preview' && (
+        <div className="device-tabs">
+          {DEVICE_TABS.map((device) => (
+            <button
+              key={device.id}
+              className={`device-tab ${deviceSize === device.id ? 'device-tab--active' : ''}`}
+              onClick={() => setDeviceSize(device.id)}
+              title={`${device.label} (${device.width})`}
+            >
+              <span className="device-tab-icon">{device.icon}</span>
+              <span className="device-tab-label">{device.label}</span>
+              <span className="device-tab-width">{device.width}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="card-content">
         {activeTab === 'preview' ? (
-          <LivePreview key={previewKey} code={component.code} />
+          <LivePreview key={previewKey} code={component.code} deviceSize={deviceSize} />
         ) : (
           <CodeView code={component.code} />
         )}
