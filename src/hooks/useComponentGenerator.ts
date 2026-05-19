@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { GeneratedComponent, Provider } from '../types';
 import { useLocalStorage } from './useLocalStorage';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 const MAX_STORED_COMPONENTS = 20;
 
@@ -27,10 +28,10 @@ interface UseComponentGeneratorReturn {
 
 export function useComponentGenerator(): UseComponentGeneratorReturn {
   const [storedComponents, setStoredComponents] = useLocalStorage<StoredComponent[]>(
-    'rcg:components',
+    STORAGE_KEYS.COMPONENTS,
     []
   );
-  const components = deserializeComponents(storedComponents);
+  const components = useMemo(() => deserializeComponents(storedComponents), [storedComponents]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,8 +60,8 @@ export function useComponentGenerator(): UseComponentGeneratorReturn {
           createdAt: new Date(),
         };
 
-        setStoredComponents(
-          [serializeComponent(newComponent), ...storedComponents].slice(0, MAX_STORED_COMPONENTS)
+        setStoredComponents((prev) =>
+          [serializeComponent(newComponent), ...prev].slice(0, MAX_STORED_COMPONENTS)
         );
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
@@ -69,14 +70,14 @@ export function useComponentGenerator(): UseComponentGeneratorReturn {
         setIsLoading(false);
       }
     },
-    [storedComponents, setStoredComponents]
+    [setStoredComponents]
   );
 
   const removeComponent = useCallback(
     (id: string) => {
-      setStoredComponents(storedComponents.filter((c) => c.id !== id));
+      setStoredComponents((prev) => prev.filter((c) => c.id !== id));
     },
-    [storedComponents, setStoredComponents]
+    [setStoredComponents]
   );
 
   const clearAll = useCallback(() => {

@@ -3,6 +3,7 @@ import { PromptInput } from './components/PromptInput';
 import { ComponentCard } from './components/ComponentCard';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { STORAGE_KEYS } from './constants/storageKeys';
 import type { Provider } from './types';
 import './App.css';
 
@@ -14,7 +15,7 @@ const PROVIDER_CONFIG = {
 function App() {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useLocalStorage<Provider>('rcg:provider', 'google');
+  const [provider, setProvider] = useLocalStorage<Provider>(STORAGE_KEYS.PROVIDER, 'google');
   const [envKeys, setEnvKeys] = useState<Record<Provider, boolean>>({
     anthropic: false,
     google: false,
